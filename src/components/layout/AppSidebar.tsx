@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   BarChart3,
   Users,
@@ -10,6 +10,7 @@ import {
   ClipboardCheck,
   Settings,
   LogOut,
+  MessageSquare,
 } from "lucide-react";
 import {
   Sidebar,
@@ -45,6 +46,12 @@ const menuItems = [
     badge: "Novo",
   },
   {
+    title: "Conversas",
+    icon: MessageSquare,
+    path: "/conversas",
+    badge: "3",
+  },
+  {
     title: "Tarefas",
     icon: ListChecks,
     path: "/tarefas",
@@ -67,6 +74,8 @@ const menuItems = [
 ];
 
 const AppSidebar = () => {
+  const location = useLocation();
+  
   return (
     <Sidebar>
       <SidebarHeader className="p-4">
@@ -91,13 +100,19 @@ const AppSidebar = () => {
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton asChild>
-                    <Link to={item.path} className="flex justify-between w-full">
+                    <Link 
+                      to={item.path} 
+                      className="flex justify-between w-full"
+                      aria-current={location.pathname === item.path ? "page" : undefined}
+                    >
                       <div className="flex items-center">
                         <item.icon className="mr-3 h-5 w-5" />
                         <span>{item.title}</span>
                       </div>
                       {item.badge && (
-                        <Badge variant="outline" className="bg-sidebar-accent text-sidebar-foreground ml-auto">
+                        <Badge variant="outline" className={`ml-auto ${
+                          item.title === "Conversas" ? "bg-primary text-primary-foreground" : "bg-sidebar-accent text-sidebar-foreground"
+                        }`}>
                           {item.badge}
                         </Badge>
                       )}
