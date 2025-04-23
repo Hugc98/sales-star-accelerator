@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,8 +27,17 @@ import {
   MoreHorizontal, 
   Phone, 
   Mail, 
-  MessageSquare 
+  MessageSquare,
+  Upload,
+  ChevronDown,
+  Calendar
 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/components/ui/use-toast";
+import LeadForm from "@/components/leads/LeadForm";
+import LeadImport from "@/components/leads/LeadImport";
+import LeadCalendar from "@/components/leads/calendar/LeadCalendar";
 
 // Dados de exemplo
 const leads = [
@@ -171,6 +180,11 @@ const sourceIcons: Record<string, string> = {
 };
 
 const LeadsPage = () => {
+  const [activeTab, setActiveTab] = useState<string>("lista");
+  const [openLeadFormDialog, setOpenLeadFormDialog] = useState<boolean>(false);
+  const [openImportDialog, setOpenImportDialog] = useState<boolean>(false);
+  const { toast } = useToast();
+
   return (
     <AppLayout>
       <div className="flex items-center justify-between mb-6">
@@ -180,100 +194,168 @@ const LeadsPage = () => {
             Gerencie seus leads e oportunidades
           </p>
         </div>
-        <Button size="sm">
-          <Plus className="mr-2 h-4 w-4" /> Novo Lead
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" /> Novo Lead <ChevronDown className="ml-2 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setOpenLeadFormDialog(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Adicionar manualmente
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setOpenImportDialog(true)}>
+              <Upload className="mr-2 h-4 w-4" />
+              Importar leads (.csv)
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nome, empresa, email..."
-            className="pl-8"
-          />
-        </div>
-        <Button variant="outline" size="icon">
-          <Filter className="h-4 w-4" />
-        </Button>
-      </div>
+      <Tabs defaultValue="lista" value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="mb-6">
+          <TabsTrigger value="lista">Lista de Leads</TabsTrigger>
+          <TabsTrigger value="calendario">
+            <Calendar className="mr-2 h-4 w-4" />
+            Calendário
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="lista" className="space-y-4">
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nome, empresa, email..."
+                className="pl-8"
+              />
+            </div>
+            <Button variant="outline" size="icon">
+              <Filter className="h-4 w-4" />
+            </Button>
+          </div>
 
-      <div className="border rounded-md">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Lead</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="hidden md:table-cell">Origem</TableHead>
-              <TableHead className="hidden lg:table-cell">Data</TableHead>
-              <TableHead className="hidden lg:table-cell">Responsável</TableHead>
-              <TableHead>Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {leads.map((lead) => (
-              <TableRow key={lead.id}>
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-9 w-9">
-                      <AvatarImage src={lead.avatarUrl} alt={lead.name} />
-                      <AvatarFallback className="bg-primary/10 text-primary">
-                        {lead.initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium">{lead.name}</p>
-                      <div className="flex gap-2 text-sm text-muted-foreground">
-                        <span>{lead.company}</span>
+          <div className="border rounded-md">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Lead</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="hidden md:table-cell">Origem</TableHead>
+                  <TableHead className="hidden lg:table-cell">Data</TableHead>
+                  <TableHead className="hidden lg:table-cell">Responsável</TableHead>
+                  <TableHead>Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {leads.map((lead) => (
+                  <TableRow key={lead.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9">
+                          <AvatarImage src={lead.avatarUrl} alt={lead.name} />
+                          <AvatarFallback className="bg-primary/10 text-primary">
+                            {lead.initials}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">{lead.name}</p>
+                          <div className="flex gap-2 text-sm text-muted-foreground">
+                            <span>{lead.company}</span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge className={statusColors[lead.status]}>{lead.status}</Badge>
-                </TableCell>
-                <TableCell className="hidden md:table-cell">
-                  <div className="flex items-center">
-                    <div className={`h-2.5 w-2.5 rounded-full ${sourceIcons[lead.source]} mr-1.5`}></div>
-                    <span>{lead.source}</span>
-                  </div>
-                </TableCell>
-                <TableCell className="hidden lg:table-cell">{lead.createdAt}</TableCell>
-                <TableCell className="hidden lg:table-cell">{lead.assignedTo}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Phone className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Mail className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MessageSquare className="h-4 w-4" />
-                    </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={statusColors[lead.status]}>{lead.status}</Badge>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <div className="flex items-center">
+                        <div className={`h-2.5 w-2.5 rounded-full ${sourceIcons[lead.source]} mr-1.5`}></div>
+                        <span>{lead.source}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">{lead.createdAt}</TableCell>
+                    <TableCell className="hidden lg:table-cell">{lead.assignedTo}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
                         <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
+                          <Phone className="h-4 w-4" />
                         </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>Atualizar status</DropdownMenuItem>
-                        <DropdownMenuItem>Alterar responsável</DropdownMenuItem>
-                        <DropdownMenuItem>Adicionar tarefa</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive">
-                          Excluir lead
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Mail className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MessageSquare className="h-4 w-4" />
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>Atualizar status</DropdownMenuItem>
+                            <DropdownMenuItem>Alterar responsável</DropdownMenuItem>
+                            <DropdownMenuItem>Adicionar tarefa</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive">
+                              Excluir lead
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="calendario">
+          <LeadCalendar />
+        </TabsContent>
+      </Tabs>
+      
+      {/* Modal para adicionar lead manualmente */}
+      <Dialog open={openLeadFormDialog} onOpenChange={setOpenLeadFormDialog}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Adicionar Novo Lead</DialogTitle>
+          </DialogHeader>
+          <LeadForm 
+            onSubmit={(data) => {
+              toast({
+                title: "Lead adicionado",
+                description: `${data.name} foi adicionado com sucesso.`
+              });
+              setOpenLeadFormDialog(false);
+            }}
+            onCancel={() => setOpenLeadFormDialog(false)} 
+          />
+        </DialogContent>
+      </Dialog>
+      
+      {/* Modal para importar leads */}
+      <Dialog open={openImportDialog} onOpenChange={setOpenImportDialog}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Importar Leads</DialogTitle>
+          </DialogHeader>
+          <LeadImport
+            onComplete={(count) => {
+              toast({
+                title: "Importação concluída",
+                description: `${count} leads foram importados com sucesso.`
+              });
+              setOpenImportDialog(false);
+            }}
+            onCancel={() => setOpenImportDialog(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 };
