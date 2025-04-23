@@ -10,6 +10,7 @@ import { useEffect } from "react";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import RecoverPasswordPage from "./pages/auth/RecoverPasswordPage";
+import AuthDiagnosticPage from "./pages/auth/AuthDiagnosticPage";
 import NotFound from "./pages/NotFound";
 import AuthGuard from "./components/auth/AuthGuard";
 import { initSecurity } from "./lib/security";
@@ -62,6 +63,7 @@ const App = () => {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/registro" element={<RegisterPage />} />
             <Route path="/recuperar-senha" element={<RecoverPasswordPage />} />
+            <Route path="/auth-diagnostico" element={<AuthDiagnosticPage />} />
             <Route path="/acesso-negado" element={
               <Suspense fallback={<LoadingFallback />}>
                 <AccessDenied />
