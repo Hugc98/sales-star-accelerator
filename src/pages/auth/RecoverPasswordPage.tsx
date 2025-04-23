@@ -1,23 +1,42 @@
 
 import { useState } from "react";
-import { Mail, ArrowLeft } from "lucide-react";
+import { Mail, ArrowLeft, Lock, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link } from "react-router-dom";
 import AuthCard from "@/components/auth/AuthCard";
-import { sanitizeInput } from "@/lib/security";
+import { sanitizeInput, checkPasswordStrength } from "@/lib/security";
 import { useToast } from "@/hooks/use-toast";
 
 const RecoverPasswordPage = () => {
   const [email, setEmail] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [step, setStep] = useState<"email" | "reset">("email");
+  const [passwordFeedback, setPasswordFeedback] = useState<{score: number; feedback: string}>({
+    score: 0,
+    feedback: ""
+  });
   
   const { toast } = useToast();
+  
+  // Validação de senha em tempo real
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const password = e.target.value;
+    setNewPassword(password);
+    
+    if (password.length > 0) {
+      const strength = checkPasswordStrength(password);
+      setPasswordFeedback(strength);
+    } else {
+      setPasswordFeedback({ score: 0, feedback: "" });
+    }
+  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
@@ -36,27 +55,66 @@ const RecoverPasswordPage = () => {
       const userExists = mockUsers.some((u: any) => u.email === sanitizedEmail);
       
       if (!userExists) {
-        // Por razões de segurança, não informamos que o email não existe
-        console.log("Email não encontrado na base de usuários:", sanitizedEmail);
+        throw new Error("Email não cadastrado no sistema.");
       }
       
-      // Simulação de chamada de API para recuperação de senha
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Simulação de envio de código de verificação (em um app real)
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Registra tentativa de recuperação em logs (em produção)
-      console.log(`Tentativa de recuperação de senha para: ${sanitizedEmail}`);
-      
-      // Simulação de sucesso no envio de email
-      toast({
-        title: "Email enviado",
-        description: "Instruções de recuperação foram enviadas para seu email.",
-      });
-      
-      // Marca como enviado para mostrar a mensagem de confirmação
-      setIsSubmitted(true);
+      // Avança para o próximo passo
+      setStep("reset");
       
     } catch (err: any) {
       setError(err.message || "Erro ao processar solicitação. Tente novamente.");
+      
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    
+    try {
+      // Validação básica
+      if (!newPassword) {
+        throw new Error("Por favor, informe a nova senha.");
+      }
+      
+      // Valida força da senha
+      if (passwordFeedback.score < 3) {
+        throw new Error("Por favor, escolha uma senha mais forte: " + passwordFeedback.feedback);
+      }
+      
+      // Simulação de chamada de API
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Atualiza a senha do usuário no localStorage
+      const mockUsers = JSON.parse(localStorage.getItem("crm_mock_users") || "[]");
+      const updatedUsers = mockUsers.map((user: any) => {
+        if (user.email === email) {
+          return { ...user, password: newPassword };
+        }
+        return user;
+      });
+      
+      localStorage.setItem("crm_mock_users", JSON.stringify(updatedUsers));
+      
+      // Feedback de sucesso
+      toast({
+        title: "Senha atualizada",
+        description: "Sua senha foi alterada com sucesso. Você já pode fazer login com a nova senha.",
+      });
+      
+      // Redireciona para o login
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 2000);
+      
+    } catch (err: any) {
+      setError(err.message || "Erro ao atualizar a senha. Tente novamente.");
       
     } finally {
       setLoading(false);
@@ -66,13 +124,15 @@ const RecoverPasswordPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-secondary/10">
       <AuthCard
-        title="Recuperar senha"
-        description="Digite seu email para receber instruções de recuperação"
+        title={step === "email" ? "Recuperar senha" : "Redefinir senha"}
+        description={step === "email" 
+          ? "Digite seu email para iniciar a recuperação" 
+          : `Defina uma nova senha para ${email}`}
         error={error}
         loading={loading}
       >
-        {!isSubmitted ? (
-          <form onSubmit={handleSubmit} className="space-y-4">
+        {step === "email" ? (
+          <form onSubmit={handleEmailSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
@@ -90,7 +150,7 @@ const RecoverPasswordPage = () => {
               </div>
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              Enviar instruções
+              Continuar
             </Button>
             <p className="text-center text-sm text-muted-foreground">
               Lembrou sua senha?{" "}
@@ -100,24 +160,78 @@ const RecoverPasswordPage = () => {
             </p>
           </form>
         ) : (
-          <div className="space-y-4">
-            <div className="bg-green-50 border border-green-200 rounded-md p-4 text-center">
-              <p className="text-green-700">
-                Verifique sua caixa de entrada e siga as instruções enviadas para {email}.
-              </p>
+          <form onSubmit={handleResetPassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">Nova senha</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="newPassword"
+                  type={showPassword ? "text" : "password"}
+                  className="pl-10 pr-10"
+                  required
+                  value={newPassword}
+                  onChange={handlePasswordChange}
+                  disabled={loading}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={loading}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </Button>
+              </div>
+              
+              {/* Feedback sobre força da senha */}
+              {newPassword.length > 0 && (
+                <div className="mt-2">
+                  <div className="flex items-center space-x-1 mt-1">
+                    <div className={`h-1 flex-1 rounded-full ${passwordFeedback.score >= 1 ? 'bg-red-500' : 'bg-gray-200'}`}></div>
+                    <div className={`h-1 flex-1 rounded-full ${passwordFeedback.score >= 2 ? 'bg-yellow-500' : 'bg-gray-200'}`}></div>
+                    <div className={`h-1 flex-1 rounded-full ${passwordFeedback.score >= 3 ? 'bg-green-500' : 'bg-gray-200'}`}></div>
+                    <div className={`h-1 flex-1 rounded-full ${passwordFeedback.score >= 4 ? 'bg-green-700' : 'bg-gray-200'}`}></div>
+                  </div>
+                  
+                  {passwordFeedback.feedback && (
+                    <p className="text-xs mt-1 text-muted-foreground">
+                      {passwordFeedback.feedback}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
-            <p className="text-sm text-muted-foreground mt-2">
-              Não recebeu o email? Verifique sua pasta de spam ou solicite novamente em alguns minutos.
-            </p>
-            <div className="pt-2">
-              <Button variant="outline" className="w-full" asChild>
-                <Link to="/login" className="inline-flex items-center">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Voltar para o login
-                </Link>
+            
+            <div className="flex justify-between space-x-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => setStep("email")}
+                disabled={loading}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Voltar
+              </Button>
+              <Button type="submit" className="flex-1" disabled={loading}>
+                Redefinir senha
               </Button>
             </div>
-          </div>
+            
+            <p className="text-center text-sm text-muted-foreground">
+              Lembrou sua senha?{" "}
+              <Link to="/login" className="text-primary hover:underline">
+                Voltar ao login
+              </Link>
+            </p>
+          </form>
         )}
       </AuthCard>
     </div>
