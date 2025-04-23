@@ -73,7 +73,15 @@ const LoginPage = () => {
       }
       
       // Cria um token JWT simulado utilizando os dados do usuário autenticado
-      const mockToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IiR7dXNlci5uYW1lfSIsImVtYWlsIjoiJHt1c2VyLmVtYWlsfSIsInJvbGUiOiIke3VzZXIucm9sZX0iLCJwZXJtaXNzaW9ucyI6WyJsZWFkcy52aWV3IiwicmVwb3J0cy52aWV3Il0sImV4cCI6MTcxNjIzOTAyMn0.K_7-vPJW5RdbYVn83L4m78-a28XJWKRdaVQxZFcKt0A`;
+      const userData = {
+        sub: crypto.randomUUID(),
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        permissions: user.permissions || []
+      };
+      
+      const mockToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${btoa(JSON.stringify(userData))}.K_7-vPJW5RdbYVn83L4m78-a28XJWKRdaVQxZFcKt0A`;
       
       // Salva a sessão no localStorage através da função do security.ts
       const session = saveSession(mockToken);
@@ -93,8 +101,11 @@ const LoginPage = () => {
         description: `Bem-vindo de volta, ${user.name}!`,
       });
       
-      // Redireciona para o dashboard ou página solicitada
-      navigate(redirect);
+      // Importante: Use um curto timeout para permitir que o toast apareça
+      // antes de redirecionar, e usar o navigate diretamente em vez de window.location
+      setTimeout(() => {
+        navigate(redirect);
+      }, 100);
       
     } catch (err: any) {
       setError(err.message || "Erro ao fazer login. Tente novamente.");

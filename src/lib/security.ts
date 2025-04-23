@@ -83,18 +83,46 @@ export const getCurrentSession = (): UserSession | null => {
  */
 export const saveSession = (token: string): UserSession | null => {
   try {
-    const decodedToken = jwtDecode(token) as any;
+    // Tenta fazer o decode do token JWT
+    let decodedToken: any;
     
+    try {
+      decodedToken = jwtDecode(token);
+    } catch (error) {
+      // Se falhar no decode, tenta parsear a parte do payload diretamente
+      const parts = token.split('.');
+      if (parts.length === 3) {
+        try {
+          decodedToken = JSON.parse(atob(parts[1]));
+        } catch (innerError) {
+          console.error("Erro ao decodificar o payload do token:", innerError);
+          return null;
+        }
+      } else {
+        console.error("Formato de token inválido");
+        return null;
+      }
+    }
+    
+    // Garante que temos os dados necessários
+    if (!decodedToken.sub && !decodedToken.email) {
+      console.error("Token não contém dados de usuário necessários");
+      return null;
+    }
+    
+    // Cria o objeto de sessão
     const session: UserSession = {
-      id: decodedToken.sub,
-      name: decodedToken.name,
+      id: decodedToken.sub || crypto.randomUUID(),
+      name: decodedToken.name || "Usuário",
       email: decodedToken.email,
-      role: decodedToken.role,
+      role: decodedToken.role || "user",
       permissions: decodedToken.permissions || [],
-      exp: decodedToken.exp,
+      // Define expiração para 1 dia a partir de agora se não estiver no token
+      exp: decodedToken.exp || Math.floor(Date.now() / 1000) + 86400,
       lastActivity: Date.now(),
     };
     
+    // Salva a sessão no localStorage
     localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
     updateLastActivity();
     
@@ -117,7 +145,7 @@ export const clearSession = (): void => {
  * Verifica se a sessão expirou
  */
 export const isSessionExpired = (session: UserSession): boolean => {
-  if (!session.exp) return true;
+  if (!session) return true;
   
   // Verifica expiração pelo JWT
   const expiration = session.exp * 1000; // Converte para milissegundos
