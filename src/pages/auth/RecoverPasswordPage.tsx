@@ -31,8 +31,16 @@ const RecoverPasswordPage = () => {
       // Sanitiza o input para prevenção de XSS
       const sanitizedEmail = sanitizeInput(email);
       
+      // Verifica se o email existe na lista de usuários
+      const mockUsers = JSON.parse(localStorage.getItem("crm_mock_users") || "[]");
+      const userExists = mockUsers.some((u: any) => u.email === sanitizedEmail);
+      
+      if (!userExists) {
+        // Por razões de segurança, não informamos que o email não existe
+        console.log("Email não encontrado na base de usuários:", sanitizedEmail);
+      }
+      
       // Simulação de chamada de API para recuperação de senha
-      // Em produção, isso seria uma chamada real para o backend
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Registra tentativa de recuperação em logs (em produção)

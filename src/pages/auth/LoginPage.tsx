@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,8 +28,19 @@ const LoginPage = () => {
   // Verifica se o usuário foi redirecionado por expiração de sessão
   const expired = new URLSearchParams(location.search).get("expired") === "true";
 
+  // Inicializa a lista de usuários mockados no localStorage se não existir
+  useEffect(() => {
+    if (!localStorage.getItem("crm_mock_users")) {
+      const initialMockUsers = [
+        { email: "admin@exemplo.com", password: "admin123", role: "admin", name: "Administrador", permissions: ["leads.view", "reports.view"] },
+        { email: "teste@exemplo.com", password: "teste123", role: "seller", name: "Usuário Teste", permissions: ["leads.view"] }
+      ];
+      localStorage.setItem("crm_mock_users", JSON.stringify(initialMockUsers));
+    }
+  }, []);
+
   // Exibe mensagem se a sessão expirou
-  useState(() => {
+  useEffect(() => {
     if (expired) {
       toast({
         title: "Sessão expirada",
@@ -37,7 +48,7 @@ const LoginPage = () => {
         variant: "destructive",
       });
     }
-  });
+  }, [expired, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +57,6 @@ const LoginPage = () => {
     
     try {
       // Simulação de chamada de API de login
-      // Em produção, isso seria uma chamada real para o backend
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Validação básica
@@ -54,21 +64,16 @@ const LoginPage = () => {
         throw new Error("Por favor, preencha todos os campos.");
       }
       
-      // Simulação de credenciais - apenas para teste durante desenvolvimento
-      // REMOVER em produção e substituir por verificação real
-      const mockUsers = [
-        { email: "admin@exemplo.com", password: "admin123", role: "admin" },
-        { email: "teste@exemplo.com", password: "teste123", role: "seller" }
-      ];
-      
-      const user = mockUsers.find(u => u.email === email && u.password === password);
+      // Verificação de credenciais contra o localStorage
+      const mockUsers = JSON.parse(localStorage.getItem("crm_mock_users") || "[]");
+      const user = mockUsers.find((u: any) => u.email === email && u.password === password);
       
       if (!user) {
         throw new Error("Email ou senha inválidos.");
       }
       
-      // Cria um token JWT simulado (em produção, este viria do servidor)
-      const mockToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlVzdcOhcmlvIFRlc3RlIiwiZW1haWwiOiIke2VtYWlsfSIsInJvbGUiOiIke3VzZXIucm9sZX0iLCJwZXJtaXNzaW9ucyI6WyJsZWFkcy52aWV3IiwicmVwb3J0cy52aWV3Il0sImV4cCI6MTcxNjIzOTAyMn0.K_7-vPJW5RdbYVn83L4m78-a28XJWKRdaVQxZFcKt0A`;
+      // Cria um token JWT simulado utilizando os dados do usuário autenticado
+      const mockToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IiR7dXNlci5uYW1lfSIsImVtYWlsIjoiJHt1c2VyLmVtYWlsfSIsInJvbGUiOiIke3VzZXIucm9sZX0iLCJwZXJtaXNzaW9ucyI6WyJsZWFkcy52aWV3IiwicmVwb3J0cy52aWV3Il0sImV4cCI6MTcxNjIzOTAyMn0.K_7-vPJW5RdbYVn83L4m78-a28XJWKRdaVQxZFcKt0A`;
       
       // Salva a sessão no localStorage através da função do security.ts
       const session = saveSession(mockToken);
@@ -85,7 +90,7 @@ const LoginPage = () => {
       // Exibe mensagem de sucesso
       toast({
         title: "Login realizado com sucesso",
-        description: `Bem-vindo de volta, ${session.name}!`,
+        description: `Bem-vindo de volta, ${user.name}!`,
       });
       
       // Redireciona para o dashboard ou página solicitada

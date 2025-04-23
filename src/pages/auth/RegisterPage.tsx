@@ -67,20 +67,30 @@ const RegisterPage = () => {
       }
       
       // Simulação de chamada de API para registro
-      // Em produção, isso seria uma chamada real para o backend
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Verificação simulada de email já existente
-      // Em produção, isso seria verificado pelo backend
-      if (email === "usuario@exemplo.com") {
+      // Verifica se o email já existe nos usuários mockados
+      const mockUsers = JSON.parse(localStorage.getItem("crm_mock_users") || "[]");
+      if (mockUsers.some((user: any) => user.email === sanitizedEmail)) {
         throw new Error("Este email já está sendo usado por outra conta.");
       }
       
-      // Cria um token JWT simulado (em produção, este viria do servidor)
+      // Adiciona o novo usuário ao array de usuários mockados
+      const newUser = {
+        email: sanitizedEmail,
+        password: password, // Em uma aplicação real, isso seria hashado
+        name: sanitizedName,
+        role: "seller",
+        permissions: ["leads.view"]
+      };
+      
+      mockUsers.push(newUser);
+      localStorage.setItem("crm_mock_users", JSON.stringify(mockUsers));
+      
+      // Cria um token JWT simulado 
       const mockToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5OTk5OTk5OSIsIm5hbWUiOiIke3Nhbml0aXplZE5hbWV9IiwiZW1haWwiOiIke3Nhbml0aXplZEVtYWlsfSIsInJvbGUiOiJzZWxsZXIiLCJwZXJtaXNzaW9ucyI6WyJsZWFkcy52aWV3Il0sImV4cCI6MTcxNjIzOTAyMn0.K_7-vPJW5RdbYVn83L4m78-a28XJWKRdaVQxZFcKt0A`;
       
-      // Simulação de sucesso no registro
-      // Em produção, exibiria o diálogo de confirmação ou redirecionaria para o dashboard
+      // Mostra o diálogo de sucesso
       setShowSuccessDialog(true);
       
     } catch (err: any) {
