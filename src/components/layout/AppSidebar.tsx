@@ -90,13 +90,15 @@ const AppSidebar = () => {
     <Sidebar>
       <SidebarHeader className="p-4">
         <Link to="/" className="flex items-center space-x-2 px-2">
-          <div className="bg-white p-1 rounded-md">
-            <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center">
-              <span className="text-white font-bold text-xl">S</span>
-            </div>
+          <div className="bg-sidebar-foreground p-1 rounded-md">
+            <img 
+              src="/lovable-uploads/c957e562-051b-4e8e-9e1f-c8e8996db93d.png" 
+              alt="Avante" 
+              className="h-7 w-auto"
+            />
           </div>
           <div>
-            <h1 className="font-bold text-sidebar-foreground text-xl">SalesSTAR</h1>
+            <h1 className="font-bold text-sidebar-foreground text-xl">Avante</h1>
             <p className="text-sidebar-foreground/80 text-xs">Acelerando resultados</p>
           </div>
         </Link>
