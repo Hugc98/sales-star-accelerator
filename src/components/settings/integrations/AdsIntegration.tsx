@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Facebook, Link, ExternalLink, BarChart3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 interface AdsAccount {
   id: string;
