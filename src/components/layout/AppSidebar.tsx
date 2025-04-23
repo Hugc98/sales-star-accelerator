@@ -31,7 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import { clearSession } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 
-// Atualizamos para incluir apenas rotas que de fato existem no App.tsx
+// Atualizamos para incluir todas as rotas disponíveis
 const menuItems = [
   {
     title: "Dashboard",
@@ -64,6 +64,11 @@ const menuItems = [
     title: "Ajuda",
     icon: HelpCircle,
     path: "/ajuda",
+  },
+  {
+    title: "Configurações",
+    icon: Settings,
+    path: "/configuracoes",
   },
 ];
 
