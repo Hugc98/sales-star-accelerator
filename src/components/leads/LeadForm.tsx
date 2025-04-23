@@ -1,12 +1,12 @@
 
 import React from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { LeadInput } from "@/types/leads";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -24,35 +24,24 @@ import {
 
 const leadSchema = z.object({
   name: z.string().min(2, "O nome deve ter pelo menos 2 caracteres"),
-  email: z.string().email("Email inválido"),
-  phone: z.string().min(8, "Telefone inválido"),
-  company: z.string().min(1, "Nome da empresa é obrigatório"),
-  source: z.string().min(1, "Selecione uma fonte"),
-  status: z.string().min(1, "Selecione um status"),
+  email: z.string().email("Email inválido").optional().nullable(),
+  phone: z.string().min(8, "Telefone inválido").optional().nullable(),
+  status: z.enum(['novo', 'contatado', 'qualificado', 'negociação', 'fechado', 'perdido'])
 });
 
-type LeadFormValues = z.infer<typeof leadSchema>;
-
 interface LeadFormProps {
-  onSubmit: (data: LeadFormValues) => void;
+  onSubmit: (data: LeadInput) => void;
   onCancel: () => void;
-  initialData?: Partial<LeadFormValues>;
 }
 
-const LeadForm: React.FC<LeadFormProps> = ({
-  onSubmit,
-  onCancel,
-  initialData = {},
-}) => {
-  const form = useForm<LeadFormValues>({
+const LeadForm: React.FC<LeadFormProps> = ({ onSubmit, onCancel }) => {
+  const form = useForm<LeadInput>({
     resolver: zodResolver(leadSchema),
     defaultValues: {
-      name: initialData.name || "",
-      email: initialData.email || "",
-      phone: initialData.phone || "",
-      company: initialData.company || "",
-      source: initialData.source || "",
-      status: initialData.status || "novo",
+      name: "",
+      email: "",
+      phone: "",
+      status: "novo",
     },
   });
 
@@ -97,45 +86,6 @@ const LeadForm: React.FC<LeadFormProps> = ({
                 <FormControl>
                   <Input placeholder="(11) 98765-4321" {...field} />
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="company"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Empresa</FormLabel>
-                <FormControl>
-                  <Input placeholder="Tech Solutions Ltda" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="source"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Origem</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a origem" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="facebook">Facebook</SelectItem>
-                    <SelectItem value="instagram">Instagram</SelectItem>
-                    <SelectItem value="indicação">Indicação</SelectItem>
-                    <SelectItem value="google">Google</SelectItem>
-                    <SelectItem value="site">Site</SelectItem>
-                  </SelectContent>
-                </Select>
                 <FormMessage />
               </FormItem>
             )}
