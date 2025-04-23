@@ -1,3 +1,4 @@
+
 import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -85,21 +86,21 @@ const App = () => {
               </AuthGuard>
             } />
             <Route path="/ranking" element={
-              <AuthGuard requiredPermissions={["reports.view"]}>
+              <AuthGuard>
                 <Suspense fallback={<LoadingFallback />}>
                   <RankingPage />
                 </Suspense>
               </AuthGuard>
             } />
             <Route path="/pipeline" element={
-              <AuthGuard requiredPermissions={["pipeline.view"]}>
+              <AuthGuard>
                 <Suspense fallback={<LoadingFallback />}>
                   <PipelinePage />
                 </Suspense>
               </AuthGuard>
             } />
             <Route path="/conversas" element={
-              <AuthGuard requiredPermissions={["conversations.view"]}>
+              <AuthGuard>
                 <Suspense fallback={<LoadingFallback />}>
                   <ConversationsPage />
                 </Suspense>

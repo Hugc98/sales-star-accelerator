@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   BarChart3,
   Users,
@@ -11,6 +11,7 @@ import {
   Settings,
   LogOut,
   MessageSquare,
+  HelpCircle,
 } from "lucide-react";
 import {
   Sidebar,
@@ -27,7 +28,10 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { clearSession } from "@/lib/auth";
+import { useToast } from "@/hooks/use-toast";
 
+// Atualizamos para incluir apenas rotas que de fato existem no App.tsx
 const menuItems = [
   {
     title: "Dashboard",
@@ -52,29 +56,30 @@ const menuItems = [
     badge: "3",
   },
   {
-    title: "Tarefas",
-    icon: ListChecks,
-    path: "/tarefas",
-  },
-  {
     title: "Ranking",
     icon: Award,
     path: "/ranking",
   },
   {
-    title: "Metas",
-    icon: ClipboardCheck,
-    path: "/metas",
-  },
-  {
-    title: "Configurações",
-    icon: Settings,
-    path: "/configuracoes",
+    title: "Ajuda",
+    icon: HelpCircle,
+    path: "/ajuda",
   },
 ];
 
 const AppSidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  const handleLogout = () => {
+    clearSession();
+    toast({
+      title: "Sessão encerrada",
+      description: "Você foi desconectado com sucesso.",
+    });
+    navigate("/login");
+  };
   
   return (
     <Sidebar>
@@ -135,7 +140,10 @@ const AppSidebar = () => {
             <p className="text-sm font-medium text-sidebar-foreground truncate">João Paulo Silva</p>
             <p className="text-xs text-sidebar-foreground/70 truncate">Gerente de Vendas</p>
           </div>
-          <button className="p-1 rounded-md hover:bg-sidebar-accent/30">
+          <button 
+            className="p-1 rounded-md hover:bg-sidebar-accent/30"
+            onClick={handleLogout}
+          >
             <LogOut className="h-4 w-4 text-sidebar-foreground/70" />
           </button>
         </div>

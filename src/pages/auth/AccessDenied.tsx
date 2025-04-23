@@ -1,9 +1,23 @@
 
 import { ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { clearSession } from "@/lib/auth";
+import { useToast } from "@/hooks/use-toast";
 
 const AccessDenied = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogout = () => {
+    clearSession();
+    toast({
+      title: "Sessão encerrada",
+      description: "Você foi desconectado com sucesso.",
+    });
+    navigate("/login");
+  };
+
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center bg-background p-4">
       <div className="w-full max-w-md text-center">
@@ -24,8 +38,8 @@ const AccessDenied = () => {
           <Button asChild>
             <Link to="/">Voltar para o Dashboard</Link>
           </Button>
-          <Button variant="outline" asChild>
-            <Link to="/ajuda">Ir para a Central de Ajuda</Link>
+          <Button variant="outline" onClick={handleLogout}>
+            Sair do Sistema
           </Button>
         </div>
       </div>
