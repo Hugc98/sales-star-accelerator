@@ -5,8 +5,10 @@ export * from './permissions';
 export * from './utils';
 export * from './activity';
 
+// Importamos diretamente do módulo activity usando import
+import { setupActivityMonitoring } from './activity';
+
 export const initSecurity = (): void => {
-  // Importamos a função diretamente do módulo activity
-  const { setupActivityMonitoring } = require('./activity');
+  // Chamamos a função diretamente sem usar require
   setupActivityMonitoring();
 };
