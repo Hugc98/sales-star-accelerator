@@ -222,6 +222,7 @@ export const mockInteractions: Interaction[] = [
     content: "Cliente mostrou maior interesse no plano Premium, mas ainda está avaliando o orçamento com a diretoria.",
     timestamp: "2023-04-20T11:35:00",
     agent: "Ana Silva",
+    source: "email", // Added the missing source property here
     status: "informativo"
   },
   {
