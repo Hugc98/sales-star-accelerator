@@ -47,8 +47,8 @@ const AuthCard = ({
         )}
         
         {securityInfo && (
-          <Alert variant="warning" className="mb-4">
-            <AlertTriangle className="h-4 w-4" />
+          <Alert variant="default" className="mb-4 border-amber-500 bg-amber-50 text-amber-900">
+            <AlertTriangle className="h-4 w-4 text-amber-500" />
             <AlertDescription>{securityInfo}</AlertDescription>
           </Alert>
         )}
