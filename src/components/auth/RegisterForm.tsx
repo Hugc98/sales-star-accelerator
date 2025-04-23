@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, UserPlus } from "lucide-react";
@@ -9,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle } from "lucide-react";
 import { checkPasswordStrength, saveSession, sanitizeInput } from "@/lib/auth";
+import PasswordInput from "@/components/auth/PasswordInput";
 
 interface RegisterFormProps {
   onSuccess: () => void;
