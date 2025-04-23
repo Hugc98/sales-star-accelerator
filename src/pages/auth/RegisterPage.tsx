@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, UserPlus, AlertTriangle } from "lucide-react";
@@ -6,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AuthCard from "@/components/auth/AuthCard";
-import { checkPasswordStrength, saveSession, sanitizeInput } from "@/lib/security";
+import { checkPasswordStrength, saveSession, sanitizeInput } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -33,7 +32,6 @@ const RegisterPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Validação de senha em tempo real
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newPassword = e.target.value;
     setPassword(newPassword);
@@ -52,33 +50,27 @@ const RegisterPage = () => {
     setLoading(true);
     
     try {
-      // Sanitiza os inputs para prevenção de XSS
       const sanitizedName = sanitizeInput(name);
       const sanitizedEmail = sanitizeInput(email);
       
-      // Validações básicas
       if (!sanitizedName || !sanitizedEmail || !password) {
         throw new Error("Por favor, preencha todos os campos.");
       }
       
-      // Validação de força de senha
       if (passwordFeedback.score < 3) {
         throw new Error("Por favor, use uma senha mais forte: " + passwordFeedback.feedback);
       }
       
-      // Simulação de chamada de API para registro
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Verifica se o email já existe nos usuários mockados
       const mockUsers = JSON.parse(localStorage.getItem("crm_mock_users") || "[]");
       if (mockUsers.some((user: any) => user.email === sanitizedEmail)) {
         throw new Error("Este email já está sendo usado por outra conta.");
       }
       
-      // Adiciona o novo usuário ao array de usuários mockados
       const newUser = {
         email: sanitizedEmail,
-        password: password, // Em uma aplicação real, isso seria hashado
+        password: password,
         name: sanitizedName,
         role: "seller",
         permissions: ["leads.view"]
@@ -87,10 +79,8 @@ const RegisterPage = () => {
       mockUsers.push(newUser);
       localStorage.setItem("crm_mock_users", JSON.stringify(mockUsers));
       
-      // Cria um token JWT simulado 
       const mockToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5OTk5OTk5OSIsIm5hbWUiOiIke3Nhbml0aXplZE5hbWV9IiwiZW1haWwiOiIke3Nhbml0aXplZEVtYWlsfSIsInJvbGUiOiJzZWxsZXIiLCJwZXJtaXNzaW9ucyI6WyJsZWFkcy52aWV3Il0sImV4cCI6MTcxNjIzOTAyMn0.K_7-vPJW5RdbYVn83L4m78-a28XJWKRdaVQxZFcKt0A`;
       
-      // Mostra o diálogo de sucesso
       setShowSuccessDialog(true);
       
     } catch (err: any) {
@@ -102,7 +92,6 @@ const RegisterPage = () => {
   };
 
   const handleConfirmRegistration = () => {
-    // Simulação de autologin após confirmação
     const mockToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5OTk5OTk5OSIsIm5hbWUiOiIke25hbWV9IiwiZW1haWwiOiIke2VtYWlsfSIsInJvbGUiOiJzZWxsZXIiLCJwZXJtaXNzaW9ucyI6WyJsZWFkcy52aWV3Il0sImV4cCI6MTcxNjIzOTAyMn0.K_7-vPJW5RdbYVn83L4m78-a28XJWKRdaVQxZFcKt0A`;
     const session = saveSession(mockToken);
     
@@ -195,7 +184,6 @@ const RegisterPage = () => {
                 </Button>
               </div>
               
-              {/* Feedback sobre força da senha */}
               {password.length > 0 && (
                 <div className="mt-2">
                   <div className="flex items-center space-x-1 mt-1">
@@ -234,7 +222,6 @@ const RegisterPage = () => {
         </AuthCard>
       </div>
       
-      {/* Diálogo de confirmação de registro */}
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

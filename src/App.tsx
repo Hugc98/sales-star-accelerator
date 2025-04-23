@@ -1,4 +1,3 @@
-
 import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -13,7 +12,7 @@ import RecoverPasswordPage from "./pages/auth/RecoverPasswordPage";
 import AuthDiagnosticPage from "./pages/auth/AuthDiagnosticPage";
 import NotFound from "./pages/NotFound";
 import AuthGuard from "./components/auth/AuthGuard";
-import { initSecurity } from "./lib/security";
+import { initSecurity } from "@/lib/auth";
 
 // Lazy loaded components
 const Dashboard = lazy(() => import("./pages/Index"));

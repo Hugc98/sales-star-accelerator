@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Mail, ArrowLeft, Lock, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link } from "react-router-dom";
 import AuthCard from "@/components/auth/AuthCard";
-import { sanitizeInput, checkPasswordStrength } from "@/lib/security";
+import { sanitizeInput, checkPasswordStrength } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 
 const RecoverPasswordPage = () => {
@@ -23,7 +22,6 @@ const RecoverPasswordPage = () => {
   
   const { toast } = useToast();
   
-  // Validação de senha em tempo real
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const password = e.target.value;
     setNewPassword(password);
@@ -42,15 +40,12 @@ const RecoverPasswordPage = () => {
     setLoading(true);
     
     try {
-      // Validação básica
       if (!email) {
         throw new Error("Por favor, informe seu email.");
       }
       
-      // Sanitiza o input para prevenção de XSS
       const sanitizedEmail = sanitizeInput(email);
       
-      // Verifica se o email existe na lista de usuários
       const mockUsers = JSON.parse(localStorage.getItem("crm_mock_users") || "[]");
       const userExists = mockUsers.some((u: any) => u.email === sanitizedEmail);
       
@@ -58,10 +53,8 @@ const RecoverPasswordPage = () => {
         throw new Error("Email não cadastrado no sistema.");
       }
       
-      // Simulação de envio de código de verificação (em um app real)
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Avança para o próximo passo
       setStep("reset");
       
     } catch (err: any) {
@@ -78,20 +71,16 @@ const RecoverPasswordPage = () => {
     setLoading(true);
     
     try {
-      // Validação básica
       if (!newPassword) {
         throw new Error("Por favor, informe a nova senha.");
       }
       
-      // Valida força da senha
       if (passwordFeedback.score < 3) {
         throw new Error("Por favor, escolha uma senha mais forte: " + passwordFeedback.feedback);
       }
       
-      // Simulação de chamada de API
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Atualiza a senha do usuário no localStorage
       const mockUsers = JSON.parse(localStorage.getItem("crm_mock_users") || "[]");
       const updatedUsers = mockUsers.map((user: any) => {
         if (user.email === email) {
@@ -102,13 +91,11 @@ const RecoverPasswordPage = () => {
       
       localStorage.setItem("crm_mock_users", JSON.stringify(updatedUsers));
       
-      // Feedback de sucesso
       toast({
         title: "Senha atualizada",
         description: "Sua senha foi alterada com sucesso. Você já pode fazer login com a nova senha.",
       });
       
-      // Redireciona para o login
       setTimeout(() => {
         window.location.href = "/login";
       }, 2000);
@@ -190,7 +177,6 @@ const RecoverPasswordPage = () => {
                 </Button>
               </div>
               
-              {/* Feedback sobre força da senha */}
               {newPassword.length > 0 && (
                 <div className="mt-2">
                   <div className="flex items-center space-x-1 mt-1">

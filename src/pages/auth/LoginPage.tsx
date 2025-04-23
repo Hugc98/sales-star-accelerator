@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
@@ -6,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AuthCard from "@/components/auth/AuthCard";
-import { saveSession } from "@/lib/security";
+import { saveSession } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -22,13 +21,9 @@ const LoginPage = () => {
   const location = useLocation();
   const { toast } = useToast();
   
-  // Obtém o URL de redirecionamento da query string ou usa o dashboard como padrão
   const redirect = new URLSearchParams(location.search).get("redirect") || "/";
-  
-  // Verifica se o usuário foi redirecionado por expiração de sessão
   const expired = new URLSearchParams(location.search).get("expired") === "true";
 
-  // Inicializa a lista de usuários mockados no localStorage se não existir
   useEffect(() => {
     if (!localStorage.getItem("crm_mock_users")) {
       const initialMockUsers = [
@@ -39,7 +34,6 @@ const LoginPage = () => {
     }
   }, []);
 
-  // Exibe mensagem se a sessão expirou
   useEffect(() => {
     if (expired) {
       toast({
@@ -56,15 +50,12 @@ const LoginPage = () => {
     setLoading(true);
     
     try {
-      // Simulação de chamada de API de login
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Validação básica
       if (!email || !password) {
         throw new Error("Por favor, preencha todos os campos.");
       }
       
-      // Verificação de credenciais contra o localStorage
       const mockUsers = JSON.parse(localStorage.getItem("crm_mock_users") || "[]");
       const user = mockUsers.find((u: any) => u.email === email && u.password === password);
       
@@ -72,7 +63,6 @@ const LoginPage = () => {
         throw new Error("Email ou senha inválidos.");
       }
       
-      // Cria um token JWT simulado utilizando os dados do usuário autenticado
       const userData = {
         sub: crypto.randomUUID(),
         name: user.name,
@@ -83,26 +73,21 @@ const LoginPage = () => {
       
       const mockToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${btoa(JSON.stringify(userData))}.K_7-vPJW5RdbYVn83L4m78-a28XJWKRdaVQxZFcKt0A`;
       
-      // Salva a sessão no localStorage através da função do security.ts
       const session = saveSession(mockToken);
       
       if (!session) {
         throw new Error("Erro ao criar sessão. Tente novamente.");
       }
       
-      // Se rememberMe estiver marcado, configuramos para persistir a sessão
       if (rememberMe) {
         localStorage.setItem("crm_remember_session", "true");
       }
       
-      // Exibe mensagem de sucesso
       toast({
         title: "Login realizado com sucesso",
         description: `Bem-vindo de volta, ${user.name}!`,
       });
       
-      // Importante: Use um curto timeout para permitir que o toast apareça
-      // antes de redirecionar, e usar o navigate diretamente em vez de window.location
       setTimeout(() => {
         navigate(redirect);
       }, 100);

@@ -1,7 +1,6 @@
-
 import { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { getCurrentSession, hasAnyPermission, updateLastActivity } from '@/lib/security';
+import { getCurrentSession, hasAnyPermission, updateLastActivity } from '@/lib/auth';
 import { Loader } from 'lucide-react';
 
 interface AuthGuardProps {
