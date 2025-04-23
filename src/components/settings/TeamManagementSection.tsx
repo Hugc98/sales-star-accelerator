@@ -47,6 +47,14 @@ const initialTeamMembers: TeamMember[] = [
   }
 ];
 
+// This interface matches what the AddTeamMemberForm provides
+interface TeamMemberFormData {
+  name: string;
+  email: string;
+  role: string;
+  status: "invited";
+}
+
 const TeamManagementSection = () => {
   const { toast } = useToast();
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>(initialTeamMembers);
@@ -60,12 +68,13 @@ const TeamManagementSection = () => {
     });
   };
   
-  const handleAddMember = (newMember: Omit<TeamMember, "id">) => {
-    const member = {
-      ...newMember,
+  // Update the parameter type to match what AddTeamMemberForm provides
+  const handleAddMember = (formData: TeamMemberFormData) => {
+    const member: TeamMember = {
+      ...formData,
       id: Math.random().toString(36).substr(2, 9),
     };
-    setTeamMembers([...teamMembers, member as TeamMember]);
+    setTeamMembers([...teamMembers, member]);
     setIsAddingMember(false);
     toast({
       title: "Membro adicionado",

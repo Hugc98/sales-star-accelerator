@@ -30,8 +30,13 @@ const teamMemberSchema = z.object({
 
 type TeamMemberFormValues = z.infer<typeof teamMemberSchema>;
 
+// Define the return type to include required status field
+interface TeamMemberFormData extends TeamMemberFormValues {
+  status: "invited";
+}
+
 interface AddTeamMemberFormProps {
-  onSubmit: (data: TeamMemberFormValues & { status: "invited" }) => void;
+  onSubmit: (data: TeamMemberFormData) => void;
   onCancel: () => void;
 }
 
