@@ -10,6 +10,10 @@ import LeadsPage from "./pages/LeadsPage";
 import RankingPage from "./pages/RankingPage";
 import PipelinePage from "./pages/PipelinePage";
 import ConversationsPage from "./pages/ConversationsPage";
+import LoginPage from "./pages/auth/LoginPage";
+import RegisterPage from "./pages/auth/RegisterPage";
+import RecoverPasswordPage from "./pages/auth/RecoverPasswordPage";
+import HelpPage from "./pages/HelpPage";
 
 const queryClient = new QueryClient();
 
@@ -20,12 +24,15 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/registro" element={<RegisterPage />} />
+          <Route path="/recuperar-senha" element={<RecoverPasswordPage />} />
+          <Route path="/ajuda" element={<HelpPage />} />
           <Route path="/" element={<Dashboard />} />
           <Route path="/leads" element={<LeadsPage />} />
           <Route path="/ranking" element={<RankingPage />} />
           <Route path="/pipeline" element={<PipelinePage />} />
           <Route path="/conversas" element={<ConversationsPage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
