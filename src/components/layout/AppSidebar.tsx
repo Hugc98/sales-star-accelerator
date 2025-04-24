@@ -87,7 +87,7 @@ const AppSidebar = () => {
   };
   
   return (
-    <Sidebar>
+    <Sidebar variant="inset">
       <SidebarHeader className="p-4">
         <Link to="/" className="flex items-center space-x-2 px-2">
           <div className="bg-sidebar-foreground p-1 rounded-md">
@@ -97,21 +97,21 @@ const AppSidebar = () => {
               className="h-7 w-auto"
             />
           </div>
-          <div>
+          <div className="hidden md:block">
             <h1 className="font-bold text-sidebar-foreground text-xl">Avante</h1>
             <p className="text-sidebar-foreground/80 text-xs">Acelerando resultados</p>
           </div>
         </Link>
       </SidebarHeader>
       
-      <SidebarContent className="px-4 py-2">
+      <SidebarContent className="px-2 py-2 md:px-4">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/80">Menu</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-foreground/80 hidden md:flex">Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.path}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild tooltip={item.title}>
                     <Link 
                       to={item.path} 
                       className="flex justify-between w-full"
@@ -119,7 +119,7 @@ const AppSidebar = () => {
                     >
                       <div className="flex items-center">
                         <item.icon className="mr-3 h-5 w-5" />
-                        <span>{item.title}</span>
+                        <span className="hidden md:inline">{item.title}</span>
                       </div>
                       {item.badge && (
                         <Badge variant="outline" className={`ml-auto ${
@@ -143,7 +143,7 @@ const AppSidebar = () => {
             <AvatarImage src="/placeholder.svg" alt="Avatar" />
             <AvatarFallback className="bg-sidebar-accent text-sidebar-accent-foreground">JP</AvatarFallback>
           </Avatar>
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden hidden md:block">
             <p className="text-sm font-medium text-sidebar-foreground truncate">João Paulo Silva</p>
             <p className="text-xs text-sidebar-foreground/70 truncate">Gerente de Vendas</p>
           </div>
