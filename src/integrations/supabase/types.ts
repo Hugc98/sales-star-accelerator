@@ -47,6 +47,47 @@ export type Database = {
           },
         ]
       }
+      lead_messages: {
+        Row: {
+          channel: string
+          created_at: string
+          id: string
+          lead_id: string
+          message: string
+          sent_at: string | null
+          status: string
+          subject: string | null
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          id?: string
+          lead_id: string
+          message: string
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          id?: string
+          lead_id?: string
+          message?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_messages_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           created_at: string

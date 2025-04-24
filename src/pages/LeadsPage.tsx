@@ -36,6 +36,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import LeadForm from "@/components/leads/LeadForm";
 import LeadImport from "@/components/leads/LeadImport";
 import { useLeads } from "@/hooks/use-leads";
+import { Lead } from "@/types/leads";
+import MessageForm from "@/components/leads/messages/MessageForm";
+import { useLeadMessages } from "@/hooks/use-lead-messages";
 
 // Status colors reused from the original file
 const statusColors: Record<string, string> = {
@@ -50,7 +53,10 @@ const statusColors: Record<string, string> = {
 const LeadsPage = () => {
   const [openLeadFormDialog, setOpenLeadFormDialog] = useState<boolean>(false);
   const [openImportDialog, setOpenImportDialog] = useState<boolean>(false);
+  const [openMessageDialog, setOpenMessageDialog] = useState<boolean>(false);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const { leads, isLoading, createLead, updateLeadStatus, deleteLead } = useLeads();
+  const { createMessage } = useLeadMessages(selectedLead?.id || '');
 
   if (isLoading) {
     return (
@@ -144,7 +150,10 @@ const LeadsPage = () => {
                       <Button variant="ghost" size="icon" className="h-8 w-8">
                         <Phone className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => {
+                        setSelectedLead(lead);
+                        setOpenMessageDialog(true);
+                      }}>
                         <Mail className="h-4 w-4" />
                       </Button>
                       <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -213,6 +222,30 @@ const LeadsPage = () => {
             }}
             onCancel={() => setOpenImportDialog(false)}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal para enviar mensagem */}
+      <Dialog open={openMessageDialog} onOpenChange={setOpenMessageDialog}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>
+              Enviar Mensagem para {selectedLead?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedLead && (
+            <MessageForm
+              onSubmit={(data) => {
+                createMessage.mutate({
+                  lead_id: selectedLead.id,
+                  ...data,
+                });
+                setOpenMessageDialog(false);
+              }}
+              onCancel={() => setOpenMessageDialog(false)}
+              isSubmitting={createMessage.isPending}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </AppLayout>
