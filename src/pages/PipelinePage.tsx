@@ -1,11 +1,29 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus } from "lucide-react";
+import { Plus, ChevronDown, Settings } from "lucide-react";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import PipelineCustomization, { PipelineStage } from "@/components/pipeline/PipelineCustomization";
+import { DragDropContext, Draggable, Droppable, DropResult } from "@hello-pangea/dnd";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Deal {
   id: number;
@@ -29,8 +47,14 @@ interface Deal {
 }
 
 // Dados de exemplo para o pipeline
-const pipelineData = {
-  stages: ["Prospecção", "Qualificação", "Proposta", "Negociação", "Fechado"],
+const initialPipelineData = {
+  stages: [
+    { id: "stage-1", name: "Prospecção", color: "#007BFF", order: 0, autoAdvance: false },
+    { id: "stage-2", name: "Qualificação", color: "#6C5CE7", order: 1, autoAdvance: false },
+    { id: "stage-3", name: "Proposta", color: "#FDCB6E", order: 2, autoAdvance: false },
+    { id: "stage-4", name: "Negociação", color: "#FF7675", order: 3, autoAdvance: false },
+    { id: "stage-5", name: "Fechado", color: "#00B894", order: 4, autoAdvance: false },
+  ],
   deals: [
     {
       id: 1,
@@ -255,11 +279,6 @@ const pipelineData = {
   ]
 };
 
-// Função para obter as negociações de cada estágio
-const getDealsByStage = (stage: string) => {
-  return pipelineData.deals.filter(deal => deal.stage === stage);
-};
-
 // Cores para as tags
 const tagColors: Record<string, string> = {
   Software: "bg-blue-100 text-blue-800",
@@ -285,6 +304,49 @@ const formatCurrency = (value: number) => {
 };
 
 const PipelinePage = () => {
+  const [pipelineStages, setPipelineStages] = useState<PipelineStage[]>(initialPipelineData.stages);
+  const [deals, setDeals] = useState<Deal[]>(initialPipelineData.deals);
+  const [isCustomizeDialogOpen, setIsCustomizeDialogOpen] = useState(false);
+  const { toast } = useToast();
+
+  // Função para obter as negociações de cada etapa
+  const getDealsByStage = (stageName: string) => {
+    return deals.filter(deal => deal.stage === stageName);
+  };
+
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+    
+    const { source, destination } = result;
+    
+    // Handle moving deals between stages
+    if (result.type === "DEAL") {
+      const sourceStage = source.droppableId;
+      const destStage = destination.droppableId;
+      
+      if (sourceStage !== destStage) {
+        // Find the deal and update its stage
+        const updatedDeals = deals.map(deal => {
+          if (deal.id.toString() === result.draggableId) {
+            return { ...deal, stage: destStage };
+          }
+          return deal;
+        });
+        
+        setDeals(updatedDeals);
+        
+        toast({
+          title: "Oportunidade movida",
+          description: `A oportunidade foi movida para a etapa "${destStage}".`,
+        });
+      }
+    }
+  };
+
+  const handleStagesChange = (newStages: PipelineStage[]) => {
+    setPipelineStages(newStages);
+  };
+
   return (
     <AppLayout>
       <div className="flex items-center justify-between mb-6">
@@ -294,78 +356,151 @@ const PipelinePage = () => {
             Visualize e gerencie suas oportunidades de negócio
           </p>
         </div>
-        <Button size="sm">
-          <Plus className="mr-2 h-4 w-4" /> Nova Oportunidade
-        </Button>
+        <div className="flex space-x-2">
+          <Dialog open={isCustomizeDialogOpen} onOpenChange={setIsCustomizeDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Settings className="mr-2 h-4 w-4" />
+                Personalizar Pipeline
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-auto">
+              <DialogHeader>
+                <DialogTitle>Personalizar Pipeline</DialogTitle>
+              </DialogHeader>
+              <PipelineCustomization
+                stages={pipelineStages}
+                onStagesChange={handleStagesChange}
+              />
+            </DialogContent>
+          </Dialog>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Nova Oportunidade
+                <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>Adicionar oportunidade</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <Plus className="mr-2 h-4 w-4" />
+                Criar do zero
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M16 2V6M8 2V6M3 10H21M5 4H19C20.1046 4 21 4.89543 21 6V20C21 21.1046 20.1046 22 19 22H5C3.89543 22 3 21.1046 3 20V6C3 4.89543 3.89543 4 5 4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M8 14L11 17L16 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                De um lead existente
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 overflow-x-auto">
-        {pipelineData.stages.map((stage) => {
-          const stageDeals = getDealsByStage(stage);
-          const totalValue = stageDeals.reduce((sum, deal) => sum + deal.value, 0);
-          
-          return (
-            <div key={stage} className="flex flex-col h-full min-w-[280px]">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold">{stage}</h3>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">{stageDeals.length}</Badge>
-                  <span className="text-sm text-muted-foreground">{formatCurrency(totalValue)}</span>
-                </div>
-              </div>
-              
-              <div className="flex-1 space-y-3">
-                {stageDeals.map((deal) => (
-                  <Card key={deal.id} className="card-hover">
-                    <CardContent className="p-3">
-                      <div className="space-y-3">
-                        <div>
-                          <h4 className="font-medium">{deal.title}</h4>
-                          <p className="text-sm text-muted-foreground">{deal.company}</p>
-                        </div>
-                        
-                        <div className="flex justify-between">
-                          <span className="font-medium">{formatCurrency(deal.value)}</span>
-                          <Badge variant="outline">{deal.probability}%</Badge>
-                        </div>
-                        
-                        <div className="flex flex-wrap gap-1">
-                          {deal.tags.map((tag, index) => (
-                            <span 
-                              key={index} 
-                              className={`text-xs px-1.5 py-0.5 rounded ${tagColors[tag]}`}
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                        
-                        <div className="flex justify-between items-center pt-2 border-t">
-                          <div className="text-xs text-muted-foreground">
-                            Previsão: {deal.expectedCloseDate}
-                          </div>
-                          <Avatar className="h-6 w-6">
-                            <AvatarImage src={deal.owner.avatarUrl} alt={deal.owner.name} />
-                            <AvatarFallback className="text-xs">{deal.owner.initials}</AvatarFallback>
-                          </Avatar>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-                
-                {stageDeals.length === 0 && (
-                  <div className="border border-dashed rounded-lg p-4 flex items-center justify-center text-center h-24">
-                    <p className="text-sm text-muted-foreground">
-                      Sem oportunidades nesse estágio
-                    </p>
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 overflow-x-auto">
+          {pipelineStages.map((stage) => {
+            const stageDeals = getDealsByStage(stage.name);
+            const totalValue = stageDeals.reduce((sum, deal) => sum + deal.value, 0);
+            
+            return (
+              <div key={stage.id} className="flex flex-col h-full min-w-[280px]">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: stage.color }}
+                    />
+                    <h3 className="font-semibold">{stage.name}</h3>
                   </div>
-                )}
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline">{stageDeals.length}</Badge>
+                    <span className="text-sm text-muted-foreground">{formatCurrency(totalValue)}</span>
+                  </div>
+                </div>
+                
+                <Droppable droppableId={stage.name} type="DEAL">
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className={`flex-1 space-y-3 min-h-[200px] p-2 rounded-md transition-colors ${
+                        snapshot.isDraggingOver ? 'bg-secondary/50' : ''
+                      }`}
+                    >
+                      {stageDeals.map((deal, index) => (
+                        <Draggable
+                          key={deal.id.toString()}
+                          draggableId={deal.id.toString()}
+                          index={index}
+                        >
+                          {(provided) => (
+                            <Card
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className="card-hover animate-fade-in"
+                            >
+                              <CardContent className="p-3">
+                                <div className="space-y-3">
+                                  <div>
+                                    <h4 className="font-medium">{deal.title}</h4>
+                                    <p className="text-sm text-muted-foreground">{deal.company}</p>
+                                  </div>
+                                  
+                                  <div className="flex justify-between">
+                                    <span className="font-medium">{formatCurrency(deal.value)}</span>
+                                    <Badge variant="outline">{deal.probability}%</Badge>
+                                  </div>
+                                  
+                                  <div className="flex flex-wrap gap-1">
+                                    {deal.tags.map((tag, index) => (
+                                      <span 
+                                        key={index} 
+                                        className={`text-xs px-1.5 py-0.5 rounded ${tagColors[tag]}`}
+                                      >
+                                        {tag}
+                                      </span>
+                                    ))}
+                                  </div>
+                                  
+                                  <div className="flex justify-between items-center pt-2 border-t">
+                                    <div className="text-xs text-muted-foreground">
+                                      Previsão: {deal.expectedCloseDate}
+                                    </div>
+                                    <Avatar className="h-6 w-6">
+                                      <AvatarImage src={deal.owner.avatarUrl} alt={deal.owner.name} />
+                                      <AvatarFallback className="text-xs">{deal.owner.initials}</AvatarFallback>
+                                    </Avatar>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                      
+                      {stageDeals.length === 0 && (
+                        <div className="border border-dashed rounded-lg p-4 flex items-center justify-center text-center h-24">
+                          <p className="text-sm text-muted-foreground">
+                            Sem oportunidades nesse estágio
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </Droppable>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      </DragDropContext>
     </AppLayout>
   );
 };

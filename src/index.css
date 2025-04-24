@@ -5,83 +5,90 @@
 
 @layer base {
   :root {
-    --background: 220 25% 97%;
-    --foreground: 220 25% 20%;
+    /* Avante CRM color palette */
+    --background: 210 20% 98%;
+    --foreground: 226 22% 16%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 25% 20%;
+    --card-foreground: 226 22% 16%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 20%;
+    --popover-foreground: 226 22% 16%;
 
-    --primary: 220 85% 25%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 226 22% 16%; /* Azul Marinho (#1A2238) */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 25% 94%;
-    --secondary-foreground: 220 25% 25%;
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 226 22% 16%;
 
-    --muted: 220 25% 94%;
-    --muted-foreground: 220 25% 46%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 220 85% 96%;
-    --accent-foreground: 220 85% 25%;
+    --accent: 210 79% 50%; /* Azul Elétrico (#007BFF) */
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 84% 70%; /* Vermelho Sutil (#FF6B6B) */
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 220 25% 90%;
-    --input: 220 25% 90%;
-    --ring: 220 85% 25%;
+    --border: 215 16% 70%;
+    --input: 215 16% 70%;
+    --ring: 226 22% 16%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 220 85% 25%;
+    --sidebar-background: 226 22% 16%;
     --sidebar-foreground: 0 0% 100%;
     --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 220 85% 25%;
-    --sidebar-accent: 220 85% 30%;
+    --sidebar-primary-foreground: 226 22% 16%;
+    --sidebar-accent: 210 79% 50%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 220 85% 30%;
-    --sidebar-ring: 220 85% 90%;
+    --sidebar-border: 226 22% 26%;
+    --sidebar-ring: 226 22% 70%;
+    
+    --success: 168 100% 36%; /* Verde Sucesso (#00B894) */
+    --success-foreground: 0 0% 100%;
   }
 
   .dark {
-    --background: 220 25% 10%;
+    --background: 226 22% 10%;
     --foreground: 0 0% 98%;
 
-    --card: 220 25% 14%;
+    --card: 226 22% 14%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 220 25% 14%;
+    --popover: 226 22% 14%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 220 85% 30%;
-    --primary-foreground: 220 25% 10%;
+    --primary: 226 22% 16%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 220 25% 20%;
+    --secondary: 226 22% 20%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 220 25% 20%;
-    --muted-foreground: 220 25% 65%;
+    --muted: 226 22% 20%;
+    --muted-foreground: 215 16% 65%;
 
-    --accent: 220 85% 18%;
-    --accent-foreground: 220 85% 30%;
+    --accent: 210 79% 45%;
+    --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 62% 50%;
+    --destructive: 0 62% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 220 25% 26%;
-    --input: 220 25% 26%;
-    --ring: 220 85% 30%;
+    --border: 226 22% 26%;
+    --input: 226 22% 26%;
+    --ring: 210 79% 50%;
     
-    --sidebar-background: 220 25% 14%;
+    --sidebar-background: 226 22% 14%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 220 85% 30%;
-    --sidebar-primary-foreground: 220 25% 10%;
-    --sidebar-accent: 220 85% 25%;
-    --sidebar-accent-foreground: 220 85% 30%;
-    --sidebar-border: 220 85% 25%;
-    --sidebar-ring: 220 85% 30%;
+    --sidebar-primary: 210 79% 40%;
+    --sidebar-primary-foreground: 226 22% 10%;
+    --sidebar-accent: 210 79% 45%;
+    --sidebar-accent-foreground: 210 79% 35%;
+    --sidebar-border: 210 79% 25%;
+    --sidebar-ring: 210 79% 50%;
+    
+    --success: 168 70% 40%;
+    --success-foreground: 0 0% 100%;
   }
 
   * {
@@ -93,10 +100,12 @@
   }
 }
 
+/* Gradient progress bar */
 .progress-bar-gradient {
-  background: linear-gradient(90deg, #7c3aed 0%, #9f7aea 50%, #b794f4 100%);
+  background: linear-gradient(90deg, #007BFF 0%, #4DA0FF 50%, #8FBDFF 100%);
 }
 
+/* Animation utilities */
 .hover-scale {
   @apply transition-transform duration-200 hover:scale-105;
 }
@@ -105,3 +114,40 @@
   @apply transition-all duration-200 hover:shadow-md hover:border-primary/40;
 }
 
+/* New animation classes for the dashboard */
+.fade-in {
+  @apply animate-fade-in;
+}
+
+.slide-in {
+  @apply animate-slide-in;
+}
+
+.pulse-subtle {
+  @apply animate-pulse-subtle;
+}
+
+/* Status colors for leads and deals */
+.status-novo {
+  @apply bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300;
+}
+
+.status-contatado {
+  @apply bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300;
+}
+
+.status-qualificado {
+  @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300;
+}
+
+.status-negociacao {
+  @apply bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300;
+}
+
+.status-fechado {
+  @apply bg-success bg-opacity-20 text-success-foreground dark:bg-success dark:bg-opacity-30 dark:text-success-foreground;
+}
+
+.status-perdido {
+  @apply bg-destructive bg-opacity-20 text-destructive-foreground dark:bg-destructive dark:bg-opacity-30 dark:text-destructive-foreground;
+}

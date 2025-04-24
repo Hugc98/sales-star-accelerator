@@ -22,6 +22,7 @@ const PipelinePage = lazy(() => import("./pages/PipelinePage"));
 const ConversationsPage = lazy(() => import("./pages/ConversationsPage"));
 const HelpPage = lazy(() => import("./pages/HelpPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const MarketingAutomationPage = lazy(() => import("./pages/MarketingAutomationPage"));
 
 // Página de acesso negado
 const AccessDenied = lazy(() => import("./pages/auth/AccessDenied"));
@@ -103,6 +104,13 @@ const App = () => {
               <AuthGuard>
                 <Suspense fallback={<LoadingFallback />}>
                   <ConversationsPage />
+                </Suspense>
+              </AuthGuard>
+            } />
+            <Route path="/automacao" element={
+              <AuthGuard>
+                <Suspense fallback={<LoadingFallback />}>
+                  <MarketingAutomationPage />
                 </Suspense>
               </AuthGuard>
             } />
