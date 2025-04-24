@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -103,3 +104,4 @@
 .card-hover {
   @apply transition-all duration-200 hover:shadow-md hover:border-primary/40;
 }
+
