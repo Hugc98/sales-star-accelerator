@@ -4,14 +4,12 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   BarChart3,
   Users,
-  ListChecks,
   Briefcase,
   Award,
-  ClipboardCheck,
-  Settings,
-  LogOut,
   MessageSquare,
   HelpCircle,
+  Settings,
+  LogOut,
 } from "lucide-react";
 import {
   Sidebar,
@@ -31,7 +29,6 @@ import { Badge } from "@/components/ui/badge";
 import { clearSession } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 
-// Atualizamos para incluir todas as rotas disponíveis
 const menuItems = [
   {
     title: "Dashboard",

@@ -4,9 +4,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Loader } from "lucide-react";
-import { useEffect } from "react";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import RecoverPasswordPage from "./pages/auth/RecoverPasswordPage";
@@ -39,8 +38,8 @@ const LoadingFallback = () => (
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000,   // 10 minutes (changed from cacheTime)
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
       refetchOnWindowFocus: false,
       retry: 1,
     },
@@ -49,7 +48,7 @@ const queryClient = new QueryClient({
 
 const App = () => {
   // Inicializa o sistema de segurança na montagem do aplicativo
-  useEffect(() => {
+  React.useEffect(() => {
     initSecurity();
   }, []);
 
@@ -79,7 +78,7 @@ const App = () => {
                 </Suspense>
               </AuthGuard>
             } />
-            <Route path="/leads" element={
+            <Route path="/leads/*" element={
               <AuthGuard requiredPermissions={["leads.view"]}>
                 <Suspense fallback={<LoadingFallback />}>
                   <LeadsPage />
