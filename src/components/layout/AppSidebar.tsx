@@ -90,7 +90,7 @@ const AppSidebar = () => {
       <SidebarFooter className="p-4 bg-gray-950">
         <div className="flex items-center space-x-3 px-2">
           <Avatar className="h-9 w-9 border-2 border-sidebar-accent">
-            <AvatarImage src="/placeholder.svg" alt="Avatar" />
+            <AvatarImage alt="Avatar" src="/lovable-uploads/fea6b9a8-edba-4b60-9a9a-9564b8335d22.png" />
             <AvatarFallback className="bg-sidebar-accent text-sidebar-accent-foreground">JP</AvatarFallback>
           </Avatar>
           <div className="flex-1 overflow-hidden hidden md:block">
