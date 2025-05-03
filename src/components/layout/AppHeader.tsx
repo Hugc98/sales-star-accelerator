@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Bell, Search, Calendar, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,17 +13,21 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
+import { BackButton } from "@/components/ui/back-button";
 
 const AppHeader = () => {
   return (
     <header className="border-b bg-card px-4 py-3">
       <div className="flex items-center justify-between">
-        <div className="relative w-full md:w-80">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar..."
-            className="pl-8 w-full"
-          />
+        <div className="flex items-center space-x-2">
+          <BackButton />
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar..."
+              className="pl-8 w-full"
+            />
+          </div>
         </div>
         
         <nav className="flex items-center space-x-2 ml-4">

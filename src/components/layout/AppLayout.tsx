@@ -1,10 +1,13 @@
+
 import React from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import AppSidebar from "./AppSidebar";
 import AppHeader from "./AppHeader";
+
 interface AppLayoutProps {
   children: React.ReactNode;
 }
+
 const AppLayout = ({
   children
 }: AppLayoutProps) => {
@@ -20,4 +23,5 @@ const AppLayout = ({
       </div>
     </SidebarProvider>;
 };
+
 export default AppLayout;
