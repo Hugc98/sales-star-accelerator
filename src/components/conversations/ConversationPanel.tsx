@@ -66,10 +66,16 @@ const ConversationPanel = ({ contact }: ConversationPanelProps) => {
     setPage(prevPage => prevPage + 1);
   };
 
-  // Scroll para a última mensagem quando mensagens mudam
+  // Scroll para a última mensagem quando mensagens mudam ou quando novas mensagens são adicionadas
   useEffect(() => {
-    if (!isLoading) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!isLoading && messages.length > 0) {
+      const shouldScrollToBottom = messagesContainerRef.current && 
+        (messagesContainerRef.current.scrollHeight - messagesContainerRef.current.scrollTop <= 
+          messagesContainerRef.current.clientHeight + 100);
+      
+      if (shouldScrollToBottom) {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }
     }
   }, [messages, isLoading]);
 
@@ -202,6 +208,11 @@ const ConversationPanel = ({ contact }: ConversationPanelProps) => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
+    
+    // Scroll to bottom after sending a message
+    setTimeout(() => {
+      scrollToBottom();
+    }, 100);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -297,8 +308,8 @@ const ConversationPanel = ({ contact }: ConversationPanelProps) => {
   const messageGroups = groupMessagesByDate(messages);
 
   return (
-    <div className="flex-1 flex flex-col border-r">
-      <div className="p-3 border-b flex items-center justify-between bg-white">
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="p-3 border-b flex items-center justify-between bg-white flex-shrink-0">
         <div className="flex items-center gap-3">
           <Avatar>
             <AvatarImage src={contact.avatar} alt={contact.name} />
@@ -430,21 +441,21 @@ const ConversationPanel = ({ contact }: ConversationPanelProps) => {
         )}
         
         <div ref={messagesEndRef} />
-        
-        {/* Scroll to bottom button */}
-        {showScrollToBottom && (
-          <Button
-            onClick={scrollToBottom}
-            size="icon"
-            className="absolute bottom-4 right-4 h-10 w-10 rounded-full shadow-lg opacity-90"
-            aria-label="Scroll to bottom"
-          >
-            <ArrowDown className="h-5 w-5" />
-          </Button>
-        )}
       </div>
       
-      <div className="border-t p-3 bg-white">
+      {/* Scroll to bottom button - Always visible when scrolled up */}
+      {showScrollToBottom && (
+        <Button
+          onClick={scrollToBottom}
+          size="icon"
+          className="absolute bottom-20 right-4 h-10 w-10 rounded-full shadow-lg opacity-90 z-10"
+          aria-label="Scroll to bottom"
+        >
+          <ArrowDown className="h-5 w-5" />
+        </Button>
+      )}
+      
+      <div className="border-t p-3 bg-white flex-shrink-0">
         <div className="flex items-end gap-2">
           <div className="flex items-center gap-1 h-8">
             <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">

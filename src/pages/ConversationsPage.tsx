@@ -76,26 +76,32 @@ const ConversationsPage = () => {
 
   const renderDesktopView = () => {
     return (
-      <>
+      <div className="flex h-full w-full">
         <ConversationsSidebar 
           onSelectContact={setActiveContact} 
           activeContactId={activeContact?.id} 
+          className="h-full w-[300px] flex-shrink-0"
         />
         {activeContact ? (
-          <>
-            <ConversationPanel contact={activeContact} />
+          <div className="flex flex-1 overflow-hidden relative">
+            <div className={`flex-1 ${detailsExpanded ? 'w-[calc(100%-300px)]' : 'w-full'} overflow-hidden`}>
+              <ConversationPanel contact={activeContact} />
+            </div>
             {detailsExpanded && (
-              <ConversationDetails contact={activeContact} />
+              <div className="w-[300px] flex-shrink-0 border-l overflow-auto">
+                <ConversationDetails contact={activeContact} />
+              </div>
             )}
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleDetails}
               className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-background border border-r-0 rounded-l-lg rounded-r-none h-12"
+              style={{ right: detailsExpanded ? '300px' : '0' }}
             >
               {detailsExpanded ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
             </Button>
-          </>
+          </div>
         ) : (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center p-8">
@@ -106,7 +112,7 @@ const ConversationsPage = () => {
             </div>
           </div>
         )}
-      </>
+      </div>
     );
   };
 
