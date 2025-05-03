@@ -1,4 +1,3 @@
-
 export type ContactSource = "whatsapp" | "instagram" | "facebook" | "email" | "telefone";
 export type ContactStatus = "novo" | "em andamento" | "qualificado" | "convertido" | "perdido";
 export type MessageType = "text" | "image" | "file" | "audio" | "video" | "location" | "call";
@@ -17,6 +16,8 @@ export interface Contact {
   unreadCount: number;
   lastActivity: string; // ISO date string
   tags?: string[];
+  agent?: string; // Added missing property
+  waitingTime?: string; // Added missing property
 }
 
 export interface Message {

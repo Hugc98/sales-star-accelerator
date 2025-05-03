@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { Paperclip, Send, Smile, Image, Phone, Video, Info, ArrowDown } from "lucide-react";
+import { Paperclip, Send, Smile, Image, Phone, Video, Info, ArrowDown, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

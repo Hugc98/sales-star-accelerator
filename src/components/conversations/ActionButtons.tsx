@@ -8,7 +8,8 @@ import {
   Clock,
   Flag,
   Send,
-  Users
+  Users,
+  X
 } from "lucide-react";
 import { 
   Tooltip, 
