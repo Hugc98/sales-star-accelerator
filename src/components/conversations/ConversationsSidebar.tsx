@@ -18,7 +18,8 @@ import { cn } from "@/lib/utils";
 
 interface ConversationsSidebarProps {
   onSelectContact: (contact: Contact) => void;
-  activeContactId: number | undefined;
+  activeContactId?: number;
+  className?: string; // Add this line to fix the type error
 }
 
 const ConversationsSidebar = ({ 
