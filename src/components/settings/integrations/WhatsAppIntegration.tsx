@@ -9,101 +9,187 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { QrCode, RefreshCw, Smartphone, CheckCircle, XCircle } from "lucide-react";
+import { QrCode, RefreshCw, Smartphone, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { io, Socket } from "socket.io-client";
+import { useAuth } from "@/lib/auth";
+import { Progress } from "@/components/ui/progress";
+
+// URL do servidor WhatsApp
+const WHATSAPP_SERVER_URL = "http://localhost:3001"; // Altere para a URL de produção quando estiver pronto
 
 const WhatsAppIntegration = () => {
   const { toast } = useToast();
-  const [qrCodeVisible, setQrCodeVisible] = useState(false);
+  const { user } = useAuth();
+  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(true);
   const [connectionInfo, setConnectionInfo] = useState({ 
     phoneNumber: '', 
     connectionTime: '' 
   });
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
+  // Inicializar Socket.IO e verificar status da conexão ao montar o componente
   useEffect(() => {
-    // Ao montar o componente, verificar status da conexão
-    checkConnectionStatus();
-  }, []);
+    if (!user?.id) return;
+
+    // Inicializar Socket.IO
+    const socketInstance = io(WHATSAPP_SERVER_URL);
+    setSocket(socketInstance);
+
+    // Entrar na sala do usuário
+    socketInstance.emit('join', user.id);
+
+    // Configurar listeners do Socket.IO
+    socketInstance.on('whatsapp:qr', ({ qrCode }) => {
+      setQrCodeUrl(qrCode);
+      setLoading(false);
+    });
+
+    socketInstance.on('whatsapp:ready', (data) => {
+      setConnected(true);
+      setQrCodeUrl(null);
+      setLoading(false);
+      setConnectionInfo({
+        phoneNumber: data.phoneNumber,
+        connectionTime: new Date(data.connectionTime).toLocaleString('pt-BR')
+      });
+      toast({
+        title: "WhatsApp conectado",
+        description: `Seu número ${data.phoneNumber} foi conectado com sucesso.`,
+      });
+    });
+
+    socketInstance.on('whatsapp:authenticated', () => {
+      toast({
+        title: "WhatsApp autenticado",
+        description: "Aguarde enquanto finalizamos a conexão...",
+      });
+    });
+
+    socketInstance.on('whatsapp:auth_failure', ({ message }) => {
+      setError(`Falha na autenticação: ${message}`);
+      setLoading(false);
+      toast({
+        title: "Erro de autenticação",
+        description: "Não foi possível autenticar com o WhatsApp. Tente novamente.",
+        variant: "destructive"
+      });
+    });
+
+    socketInstance.on('whatsapp:disconnected', ({ reason }) => {
+      setConnected(false);
+      setQrCodeUrl(null);
+      setError(null);
+      toast({
+        title: "WhatsApp desconectado",
+        description: reason || "A conexão com WhatsApp foi encerrada.",
+      });
+    });
+
+    socketInstance.on('connect_error', (err) => {
+      console.error('Erro ao conectar com o Socket.IO:', err);
+      setError('Não foi possível conectar ao servidor WhatsApp. Verifique se o servidor está em execução.');
+    });
+
+    // Verificar status atual da conexão
+    checkConnectionStatus(user.id);
+
+    return () => {
+      socketInstance.disconnect();
+    };
+  }, [user?.id, toast]);
 
   // Função para verificar o status atual da conexão
-  const checkConnectionStatus = async () => {
+  const checkConnectionStatus = async (userId: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke('whatsapp', {
-        body: { action: 'checkStatus' }
-      });
-
-      if (error) throw new Error(error.message);
+      setCheckingStatus(true);
+      const response = await fetch(`${WHATSAPP_SERVER_URL}/api/whatsapp/status/${userId}`);
       
-      if (data.status === 'connected') {
-        setConnected(true);
-        setConnectionInfo({
-          phoneNumber: data.phoneNumber,
-          connectionTime: new Date(data.connectionTime).toLocaleString('pt-BR')
-        });
-        setQrCodeVisible(false);
-      } else {
-        setConnected(false);
-        setQrCodeVisible(false);
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.status === 'connected') {
+          setConnected(true);
+          setConnectionInfo({
+            phoneNumber: data.phoneNumber,
+            connectionTime: data.connectionTime ? new Date(data.connectionTime).toLocaleString('pt-BR') : 'Informação não disponível'
+          });
+        } else if (data.status === 'qr_ready' && data.qrCode) {
+          setQrCodeUrl(data.qrCode);
+        }
       }
     } catch (error) {
       console.error('Erro ao verificar status:', error);
-      setConnected(false);
-      setQrCodeVisible(false);
+    } finally {
+      setCheckingStatus(false);
     }
   };
 
-  // Função para gerar QR Code
+  // Função para inicializar o cliente WhatsApp e gerar QR Code
   const generateQrCode = async () => {
+    if (!user?.id) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar logado para conectar o WhatsApp.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
+    setError(null);
+    
     try {
-      const { data, error } = await supabase.functions.invoke('whatsapp', {
-        body: { action: 'getQRCode' }
+      const response = await fetch(`${WHATSAPP_SERVER_URL}/api/whatsapp/init`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: user.id }),
       });
 
-      if (error) throw new Error(error.message);
+      if (!response.ok) {
+        throw new Error('Não foi possível inicializar o cliente WhatsApp');
+      }
+
+      // Solicitar QR code via Socket.IO, caso não chegue automaticamente
+      if (socket) {
+        socket.emit('whatsapp:requestQR', user.id);
+      }
       
-      setQrCodeVisible(true);
+      // O QR code será recebido via evento WebSocket
     } catch (error) {
       console.error('Erro ao gerar QR code:', error);
+      setError('Não foi possível gerar o QR Code. Verifique se o servidor WhatsApp está em execução.');
+      setLoading(false);
       toast({
         title: "Erro",
         description: "Não foi possível gerar o QR Code. Tente novamente.",
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
-  };
-
-  // Função simulada para conectar o WhatsApp 
-  // (em uma implementação real, isso seria feito pela edge function)
-  const simulateConnection = () => {
-    toast({
-      title: "WhatsApp conectado",
-      description: "Seu número +55 11 98765-4321 foi conectado com sucesso.",
-    });
-    setQrCodeVisible(false);
-    setConnected(true);
-    setConnectionInfo({
-      phoneNumber: '+55 11 98765-4321',
-      connectionTime: new Date().toLocaleString('pt-BR')
-    });
   };
 
   // Função para desconectar
   const handleDisconnect = async () => {
+    if (!user?.id) return;
+
     try {
-      const { data, error } = await supabase.functions.invoke('whatsapp', {
-        body: { action: 'disconnect' }
+      const response = await fetch(`${WHATSAPP_SERVER_URL}/api/whatsapp/disconnect/${user.id}`, {
+        method: 'POST',
       });
 
-      if (error) throw new Error(error.message);
-      
+      if (!response.ok) {
+        throw new Error('Não foi possível desconectar o WhatsApp');
+      }
+
       setConnected(false);
-      setQrCodeVisible(false);
+      setQrCodeUrl(null);
+      setError(null);
       toast({
         title: "WhatsApp desconectado",
         description: "Sua conta do WhatsApp foi desconectada.",
@@ -118,6 +204,23 @@ const WhatsAppIntegration = () => {
     }
   };
 
+  // Quando estiver verificando o status inicial
+  if (checkingStatus) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Conectar WhatsApp</CardTitle>
+          <CardDescription>
+            Verificando status da conexão...
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex justify-center p-6">
+          <Progress value={80} className="w-3/4" />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -127,6 +230,13 @@ const WhatsAppIntegration = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {error && (
+          <div className="mb-4 p-4 bg-destructive/10 border border-destructive rounded-md flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-destructive" />
+            <p className="text-sm text-destructive">{error}</p>
+          </div>
+        )}
+
         {connected ? (
           <div className="flex flex-col items-center p-6 border rounded-md bg-muted/30">
             <div className="flex items-center gap-2 text-green-600 mb-4">
@@ -141,27 +251,21 @@ const WhatsAppIntegration = () => {
               <p className="text-sm text-muted-foreground">Conexão realizada em {connectionInfo.connectionTime}</p>
             </div>
           </div>
-        ) : qrCodeVisible ? (
+        ) : qrCodeUrl ? (
           <div className="flex flex-col items-center p-6 border rounded-md">
             <h3 className="text-lg font-medium mb-4">Escaneie o QR Code</h3>
             <p className="text-sm text-muted-foreground mb-4 text-center">
               Abra o WhatsApp no seu celular, toque em Menu ou Configurações e selecione WhatsApp Web
             </p>
             <div className="bg-white p-3 rounded-md mb-4">
-              {/* QR Code (simulação para o MVP) */}
-              <div 
-                className="w-64 h-64 flex items-center justify-center cursor-pointer"
-                onClick={simulateConnection}
-              >
-                <img 
-                  src="data:image/png;base64,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" 
-                  alt="QR Code WhatsApp" 
-                  className="w-full h-full"
-                />
-              </div>
+              <img 
+                src={qrCodeUrl} 
+                alt="QR Code WhatsApp" 
+                className="w-64 h-64"
+              />
             </div>
             <p className="text-xs text-muted-foreground">
-              Clique no QR Code para simular a conexão (somente para testes)
+              O QR code expira após 60 segundos
             </p>
           </div>
         ) : (
