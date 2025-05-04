@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '@/lib/auth';
@@ -196,7 +195,7 @@ export const useWhatsAppService = () => {
       throw error;
     }
   };
-
+  
   return {
     isConnected,
     isConnecting,

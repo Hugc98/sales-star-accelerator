@@ -4,6 +4,7 @@ export * from './session';
 export * from './permissions';
 export * from './utils';
 export * from './activity';
+export * from './useAuth';
 
 // Importamos diretamente do módulo activity usando import
 import { setupActivityMonitoring } from './activity';
