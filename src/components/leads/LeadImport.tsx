@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Upload, AlertCircle, CheckCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface LeadImportProps {
   onComplete: (count: number) => void;
@@ -16,7 +18,9 @@ const LeadImport: React.FC<LeadImportProps> = ({ onComplete, onCancel }) => {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [previewData, setPreviewData] = useState<string[][]>([]);
+  const [isSuccess, setIsSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -41,27 +45,119 @@ const LeadImport: React.FC<LeadImportProps> = ({ onComplete, onCancel }) => {
     }
   };
 
+  const processCSVData = async (text: string): Promise<number> => {
+    try {
+      // Parse CSV
+      const rows = text.split('\n');
+      const headers = rows[0].split(',');
+      
+      // Map headers to lead fields
+      const nameIndex = headers.findIndex(h => 
+        h.toLowerCase().includes('nome') || h.toLowerCase().includes('name'));
+      const emailIndex = headers.findIndex(h => 
+        h.toLowerCase().includes('email'));
+      const phoneIndex = headers.findIndex(h => 
+        h.toLowerCase().includes('tel') || h.toLowerCase().includes('phone'));
+      
+      if (nameIndex === -1) {
+        throw new Error('O arquivo CSV deve conter uma coluna de nome (nome ou name)');
+      }
+
+      // Process data rows
+      const leads = [];
+      for (let i = 1; i < rows.length; i++) {
+        // Skip empty rows
+        if (!rows[i].trim()) continue;
+        
+        const values = rows[i].split(',');
+        
+        // Basic validation
+        const name = values[nameIndex]?.trim();
+        if (!name) continue; // Skip if no name
+        
+        const lead = {
+          name,
+          email: emailIndex >= 0 ? values[emailIndex]?.trim() || null : null,
+          phone: phoneIndex >= 0 ? values[phoneIndex]?.trim() || null : null,
+          status: 'novo'
+        };
+        
+        leads.push(lead);
+      }
+      
+      // Import in batches to show realistic progress
+      const batchSize = 10;
+      const batches = Math.ceil(leads.length / batchSize);
+      
+      for (let i = 0; i < batches; i++) {
+        const batch = leads.slice(i * batchSize, (i + 1) * batchSize);
+        
+        // Insert batch into database
+        const { error } = await supabase.from('leads').insert(batch);
+        
+        if (error) throw error;
+        
+        // Update progress
+        setProgress(Math.floor(((i + 1) / batches) * 100));
+        
+        // Brief pause to show progress (can be removed in production)
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+      
+      return leads.length;
+    } catch (error) {
+      console.error('Erro ao processar CSV:', error);
+      throw error;
+    }
+  };
+
   const handleImport = async () => {
     if (!file) {
       setError('Nenhum arquivo selecionado.');
       return;
     }
 
-    setUploading(true);
-    setProgress(0);
-
-    // Simulação de upload e processamento
-    const totalSteps = 10;
-    for (let i = 0; i <= totalSteps; i++) {
-      await new Promise(resolve => setTimeout(resolve, 300));
-      setProgress(Math.floor((i / totalSteps) * 100));
+    try {
+      setUploading(true);
+      setProgress(0);
+      setError(null);
+      
+      const reader = new FileReader();
+      
+      reader.onload = async (event) => {
+        try {
+          const text = event.target?.result as string;
+          const importedCount = await processCSVData(text);
+          
+          setIsSuccess(true);
+          toast({
+            title: "Importação concluída",
+            description: `${importedCount} leads foram importados com sucesso!`,
+            variant: "default",
+          });
+          
+          // Allow the success state to be visible briefly before closing
+          setTimeout(() => {
+            setUploading(false);
+            onComplete(importedCount);
+          }, 1500);
+          
+        } catch (error: any) {
+          setUploading(false);
+          setError(error.message || 'Erro ao importar leads. Verifique o formato do arquivo.');
+        }
+      };
+      
+      reader.onerror = () => {
+        setUploading(false);
+        setError('Erro ao ler o arquivo. Por favor, tente novamente.');
+      };
+      
+      reader.readAsText(file);
+    } catch (error: any) {
+      setUploading(false);
+      setError(error.message || 'Erro desconhecido durante a importação.');
     }
-
-    // Simular número de leads importados - em um caso real, isso viria da API
-    const leadCount = Math.floor(Math.random() * 30) + 10;
-    
-    setUploading(false);
-    onComplete(leadCount);
   };
 
   const triggerFileSelect = () => {
@@ -107,6 +203,13 @@ const LeadImport: React.FC<LeadImportProps> = ({ onComplete, onCancel }) => {
         </Alert>
       )}
 
+      {isSuccess && (
+        <Alert variant="default" className="bg-green-50 border-green-200">
+          <CheckCircle className="h-4 w-4 text-green-600" />
+          <AlertDescription className="text-green-800">Importação concluída com sucesso!</AlertDescription>
+        </Alert>
+      )}
+
       {file && previewData.length > 0 && (
         <div className="space-y-2">
           <h3 className="font-medium">Prévia dos dados:</h3>
@@ -143,17 +246,39 @@ const LeadImport: React.FC<LeadImportProps> = ({ onComplete, onCancel }) => {
         </div>
       )}
 
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onCancel} disabled={uploading}>
+      <div className="flex justify-end gap-2 pt-4 border-t mt-6">
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={onCancel} 
+          disabled={uploading}
+        >
           Cancelar
         </Button>
-        <Button 
-          onClick={handleImport} 
-          disabled={!file || uploading}
-          className="flex gap-2"
-        >
-          {uploading ? "Importando..." : "Importar Leads"}
-        </Button>
+        
+        {file && !uploading && !isSuccess && (
+          <Button 
+            onClick={handleImport} 
+            className="flex gap-2"
+            size="lg"
+          >
+            <Upload className="h-4 w-4" />
+            Importar Leads Agora
+          </Button>
+        )}
+        
+        {uploading && (
+          <Button disabled className="flex gap-2">
+            Importando...
+          </Button>
+        )}
+        
+        {isSuccess && (
+          <Button variant="outline" onClick={() => onComplete(0)} className="flex gap-2">
+            <CheckCircle className="h-4 w-4" />
+            Fechar
+          </Button>
+        )}
       </div>
     </div>
   );
