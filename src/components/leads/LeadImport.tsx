@@ -6,6 +6,14 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
 
 interface LeadImportProps {
   onComplete: (count: number) => void;
@@ -38,7 +46,31 @@ const LeadImport: React.FC<LeadImportProps> = ({ onComplete, onCancel }) => {
       const reader = new FileReader();
       reader.onload = (event) => {
         const text = event.target?.result as string;
-        const rows = text.split('\n').map(row => row.split(','));
+        const rows = text.split('\n').map(row => {
+          // Handle quoted CSV values properly
+          const values = [];
+          let inQuotes = false;
+          let currentValue = '';
+          
+          for (let i = 0; i < row.length; i++) {
+            const char = row[i];
+            
+            if (char === '"' && (i === 0 || row[i-1] !== '\\')) {
+              inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+              values.push(currentValue.trim());
+              currentValue = '';
+            } else {
+              currentValue += char;
+            }
+          }
+          
+          if (currentValue.trim()) {
+            values.push(currentValue.trim());
+          }
+          
+          return values.length > 0 ? values : row.split(',');
+        });
         setPreviewData(rows.slice(0, 5)); // Mostrar apenas as primeiras 5 linhas
       };
       reader.readAsText(selectedFile);
@@ -213,25 +245,29 @@ const LeadImport: React.FC<LeadImportProps> = ({ onComplete, onCancel }) => {
       {file && previewData.length > 0 && (
         <div className="space-y-2">
           <h3 className="font-medium">Prévia dos dados:</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full border rounded">
-              <thead className="bg-muted">
-                <tr>
+          <div className="overflow-x-auto rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted hover:bg-muted">
                   {previewData[0].map((header, i) => (
-                    <th key={i} className="px-4 py-2 text-left text-sm font-medium">{header}</th>
+                    <TableHead key={i} className="font-semibold whitespace-nowrap">
+                      {header}
+                    </TableHead>
                   ))}
-                </tr>
-              </thead>
-              <tbody>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {previewData.slice(1).map((row, i) => (
-                  <tr key={i} className="border-t">
+                  <TableRow key={i}>
                     {row.map((cell, j) => (
-                      <td key={j} className="px-4 py-2 text-sm">{cell}</td>
+                      <TableCell key={j} className="whitespace-nowrap">
+                        {cell}
+                      </TableCell>
                     ))}
-                  </tr>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
           <p className="text-xs text-muted-foreground mt-2">
             Mostrando apenas as primeiras linhas. O arquivo completo será processado durante a importação.

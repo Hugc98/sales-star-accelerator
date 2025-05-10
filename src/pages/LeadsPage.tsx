@@ -24,9 +24,10 @@ const statusColors: Record<string, string> = {
 };
 
 const LeadsPage = () => {
-  const [openLeadFormDialog, setOpenLeadFormDialog] = useState<boolean>(false);
-  const [openImportDialog, setOpenImportDialog] = useState<boolean>(false);
-  const [openMessageDialog, setOpenMessageDialog] = useState<boolean>(false);
+  // Using separate state variables for each dialog to ensure they're independent
+  const [leadFormDialogOpen, setLeadFormDialogOpen] = useState<boolean>(false);
+  const [importDialogOpen, setImportDialogOpen] = useState<boolean>(false);
+  const [messageDialogOpen, setMessageDialogOpen] = useState<boolean>(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const { leads, isLoading, createLead, updateLeadStatus, deleteLead } = useLeads();
   const { createMessage } = useLeadMessages(selectedLead?.id || '');
@@ -43,14 +44,14 @@ const LeadsPage = () => {
 
   const handleMessageClick = (lead: Lead) => {
     setSelectedLead(lead);
-    setOpenMessageDialog(true);
+    setMessageDialogOpen(true);
   };
 
   return (
     <AppLayout>
       <LeadHeader
-        onNewLeadClick={() => setOpenLeadFormDialog(true)}
-        onImportClick={() => setOpenImportDialog(true)}
+        onNewLeadClick={() => setLeadFormDialogOpen(true)}
+        onImportClick={() => setImportDialogOpen(true)}
       />
       <LeadSearch />
       <LeadTable
@@ -61,7 +62,7 @@ const LeadsPage = () => {
       />
       
       {/* Modal for adding lead manually */}
-      <Dialog open={openLeadFormDialog} onOpenChange={setOpenLeadFormDialog}>
+      <Dialog open={leadFormDialogOpen} onOpenChange={setLeadFormDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Adicionar Novo Lead</DialogTitle>
@@ -69,30 +70,30 @@ const LeadsPage = () => {
           <LeadForm 
             onSubmit={(data) => {
               createLead.mutate(data);
-              setOpenLeadFormDialog(false);
+              setLeadFormDialogOpen(false);
             }}
-            onCancel={() => setOpenLeadFormDialog(false)} 
+            onCancel={() => setLeadFormDialogOpen(false)} 
           />
         </DialogContent>
       </Dialog>
       
       {/* Modal for importing leads */}
-      <Dialog open={openImportDialog} onOpenChange={setOpenImportDialog}>
+      <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Importar Leads</DialogTitle>
           </DialogHeader>
           <LeadImport
             onComplete={(count) => {
-              setOpenImportDialog(false);
+              setImportDialogOpen(false);
             }}
-            onCancel={() => setOpenImportDialog(false)}
+            onCancel={() => setImportDialogOpen(false)}
           />
         </DialogContent>
       </Dialog>
 
       {/* Modal for sending message */}
-      <Dialog open={openMessageDialog} onOpenChange={setOpenMessageDialog}>
+      <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>
@@ -108,9 +109,9 @@ const LeadsPage = () => {
                   subject: data.subject,
                   channel: data.channel,
                 });
-                setOpenMessageDialog(false);
+                setMessageDialogOpen(false);
               }}
-              onCancel={() => setOpenMessageDialog(false)}
+              onCancel={() => setMessageDialogOpen(false)}
               isSubmitting={createMessage.isPending}
             />
           )}
